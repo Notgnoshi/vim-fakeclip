@@ -66,6 +66,13 @@ endif
 
 
 " Interface  "{{{1
+function! fakeclip#should_distinguish_primary_and_clipboard()  "{{{2
+    return s:PLATFORM == 'x'
+endfunction
+
+
+
+
 function! fakeclip#clipboard_delete(motion_type)  "{{{2
   return fakeclip#delete('clipboard', a:motion_type)
 endfunction
@@ -76,6 +83,22 @@ endfunction
 function! fakeclip#clipboard_yank(motion_type)  "{{{2
   return fakeclip#yank('clipboard', a:motion_type)
 endfunction
+
+
+
+
+if fakeclip#should_distinguish_primary_and_clipboard()
+function! fakeclip#primary_delete(motion_type)  "{{{2
+  return fakeclip#delete('primary', a:motion_type)
+endfunction
+
+
+
+
+function! fakeclip#primary_yank(motion_type)  "{{{2
+  return fakeclip#yank('primary', a:motion_type)
+endfunction
+endif
 
 
 
@@ -145,9 +168,14 @@ function! fakeclip#yank_Y(system_type)  "{{{2
   if 0 < diff
     execute 'normal!' diff.'j'
   endif
-  execute 'normal' (a:system_type ==# 'clipboard'
-  \                 ? "\<Plug>(fakeclip-Y)"
-  \                 : "\<Plug>(fakeclip-screen-Y)")
+  if a:system_type ==# 'clipboard'
+    let t = ''
+  elseif a:system_type ==# 'primary'
+    let t = '-primary'
+  else
+    let t = '-screen'
+  endif
+  execute 'normal' "\<Plug>(fakeclip".t.'-Y)'
 endfunction
 
 
@@ -195,7 +223,7 @@ endfunction
 
 
 function! s:read_clipboard_x()
-  return system('xclip -o')
+  return system('xclip -o -selection clipboard')
 endfunction
 
 
@@ -209,6 +237,19 @@ function! s:read_clipboard_unknown()
   \       s:PLATFORM
   return ''
 endfunction
+
+
+
+if fakeclip#should_distinguish_primary_and_clipboard()
+function! s:read_primary()  "{{{2
+  return s:read_primary_{s:PLATFORM}()
+endfunction
+
+
+function! s:read_primary_x()
+  return system('xclip -o -selection primary')
+endfunction
+endif
 
 
 
@@ -285,7 +326,7 @@ endfunction
 
 
 function! s:write_clipboard_x(text)
-  call system('xclip', a:text)
+  call system('xclip -selection clipboard', a:text)
   return
 endfunction
 
@@ -301,6 +342,26 @@ function! s:write_clipboard_unknown(text)
   \       s:PLATFORM
   return
 endfunction
+
+
+
+
+if fakeclip#should_distinguish_primary_and_clipboard()
+function! s:write_primary(text)  "{{{2
+  if exists('g:fakeclip_write_primary_command')
+    call system(g:fakeclip_write_primary_command, a:text)
+  else
+    call s:write_primary_{s:PLATFORM}(a:text)
+  endif
+  return
+endfunction
+
+
+function! s:write_primary_x(text)
+  call system('xclip -selection primary', a:text)
+  return
+endfunction
+endif
 
 
 

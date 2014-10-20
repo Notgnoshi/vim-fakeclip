@@ -26,6 +26,10 @@
 if exists('g:loaded_fakeclip')
   finish
 endif
+let g:loaded_fakeclip = 1
+
+let s:save_cpo = &cpo
+set cpo&vim
 
 
 
@@ -332,7 +336,7 @@ endif
 
 " Epilogue  "{{{1
 
-let g:loaded_fakeclip = 1
+let &cpo = s:save_cpo
 
 
 

@@ -46,7 +46,7 @@ elseif has('win32unix')
   let s:PLATFORM = 'cygwin'
 elseif $WAYLAND_DISPLAY != '' && executable('wl-copy')
   let s:PLATFORM = 'wayland'
-elseif $DISPLAY != '' && executable('xclip')
+elseif $DISPLAY != '' && ( executable('xclip') || executable('xsel') )
   let s:PLATFORM = 'x'
 elseif executable('lemonade')
   let s:PLATFORM = 'lemonade'
